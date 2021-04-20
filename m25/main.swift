@@ -53,6 +53,7 @@ struct RunQuiz: ParsableCommand {
 
     for (offset, question) in questions.enumerated() {
 
+      print(String(repeating: "-", count: 50))
       print("Question \(offset+1) of \(questions.count)")
       print(question.question)
 
@@ -69,6 +70,7 @@ struct RunQuiz: ParsableCommand {
     }
 
     let performance = Int(Double(correctResponseCount) / Double(questions.count) * 100)
+    print(String(repeating: "=", count: 50))
     print("Finished \(performance)%")
   }
 }
