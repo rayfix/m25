@@ -34,6 +34,9 @@ struct RunQuiz: ParsableCommand {
   @Flag(name: .customLong("order"), help: "Do not shuffle the questions.")
   var isOrdered: Bool = false
 
+  @Flag(name: .customLong("show"), help: "Show answers and exit.")
+  var showAnswersAndExit = false
+
   private func separator(isDouble: Bool) -> String {
     String(repeating: isDouble ? "=" : "-", count: 50)
   }
@@ -52,7 +55,15 @@ struct RunQuiz: ParsableCommand {
 
     var correctResponseCount = 0
 
-    print("Multiplication Practice for \(numbersToStudy.map(String.init).joined(separator: ", ")).")
+    print("Multiplication \(numbersToStudy.map(String.init).joined(separator: ", ")).")
+    print(separator(isDouble: true))
+
+    guard !showAnswersAndExit else {
+      multiplications.forEach { multiplication in
+        print(multiplication.question, "=", multiplication.answer)
+      }
+      return
+    }
 
     for (offset, multiplication) in multiplications.enumerated() {
 
