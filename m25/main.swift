@@ -49,8 +49,11 @@ struct RunQuiz: ParsableCommand {
 
     var correctResponseCount = 0
 
-    for question in questions {
+    print("Multiplication Practice for \(numbersToStudy.map(String.init).joined(separator: ", ")).")
 
+    for (offset, question) in questions.enumerated() {
+
+      print("Question \(offset+1) of \(questions.count)")
       print(question.question)
 
       let response = readLine(strippingNewline: true)?
