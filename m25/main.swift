@@ -66,8 +66,23 @@ struct RunQuiz: ParsableCommand {
   @Option(name: .shortAndLong, help: "The end of the multiplication table.")
   var to: Int = 25
 
-  @Flag(name: .customLong("order"), help: "Do not shuffle the questions.")
-  var isOrdered: Bool = false
+  enum Ordering: String, ExpressibleByArgument {
+    case random, sorted, reversed
+
+    func arrange(_ items: [Multiplication]) -> [Multiplication] {
+      switch self {
+      case .random:
+        return items.shuffled()
+      case .sorted:
+        return items.sorted { ($0.a, $0.b) < ($1.a, $1.b) }
+      case .reversed:
+        return items.sorted { ($0.a, $0.b) > ($1.a, $1.b) }
+      }
+    }
+  }
+
+  @Option(name: .customLong("order"), help: "The order of the question.")
+  var ordering = Ordering.random
 
   @Flag(name: .customLong("show"), help: "Show answers and exit.")
   var showAnswersAndExit = false
@@ -78,43 +93,42 @@ struct RunQuiz: ParsableCommand {
 
   mutating func run() throws {
 
-    let orderedMultiplications = numbersToStudy.flatMap { numberToStudy in
+    let all = numbersToStudy.flatMap { a in
       (from...to).map { b in
-        Multiplication(a: numberToStudy, b: b)
+        Multiplication(a: a, b: b)
       }
     }
 
-    let allMultiplications = isOrdered ? orderedMultiplications : orderedMultiplications.shuffled()
+    let ordered = ordering.arrange(all)
 
-    let multiplications = limit.map { Array(allMultiplications.prefix($0)) } ?? allMultiplications
+    let multiplications = limit.map { Array(ordered.prefix($0)) } ?? ordered
 
-    var correctResponseCount = 0
-
-    print("Multiplication \(numbersToStudy.map(String.init).joined(separator: ", ")).")
+    print("Multiplication \(numbersToStudy.sorted().map(String.init).joined(separator: ", ")).")
     print(separator(isDouble: true))
 
     guard !showAnswersAndExit else {
-      multiplications.forEach { multiplication in
-        print(multiplication.question, "=", multiplication.answer)
+      multiplications.forEach { mult in
+        print(mult.question, "=", mult.answer)
       }
       return
     }
 
-    for (offset, multiplication) in multiplications.enumerated() {
+    var correctResponseCount = 0
+    for (offset, mult) in multiplications.enumerated() {
 
       print(separator(isDouble: false))
       print("Question \(offset+1) of \(multiplications.count)")
-      print(multiplication.question)
+      print(mult.question)
 
       let response = readLine(strippingNewline: true)?
         .trimmingCharacters(in: .whitespaces)
 
-      if response == multiplication.answer {
+      if response == mult.answer {
         print("⭐️ Correct")
         correctResponseCount += 1
       }
       else {
-        print("❌ Incorrect \(multiplication.question) = \(multiplication.answer)")
+        print("❌ Incorrect \(mult.question) = \(mult.answer)")
       }
     }
 
