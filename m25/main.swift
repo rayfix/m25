@@ -30,15 +30,16 @@ struct RunQuiz: ParsableCommand {
 
   static var configuration: CommandConfiguration {
     CommandConfiguration(commandName: "m25",
+                         abstract: "Practice multiplication at the console.",
                          discussion: """
-        Practice multiplication tables 25x25
+        Practice your multiplication table.
 
         Examples:
-           # Practice 12x2 up to 12x25 scrambled.
+           # Practice 12x2 up to 12x25 in random order.
            m25 12
 
            # Practice 12x2 up to 12x25, present questions in order.
-           m25 --order 12
+           m25 --order sorted 12
 
            # Practice 12, 13, and 14
            m25 12 13 14
@@ -47,10 +48,10 @@ struct RunQuiz: ParsableCommand {
            m25 15 16 --limit 10
 
            # Show 12x2 to 12x25 in order and exit.
-           m25 12 --show --order
+           m25 12 --show --order reversed
 
            # Show 12x12 to 12x24 in order and exit
-           m25 12 --show --order --from 12 --to 24
+           m25 12 --show --order sorted --from 12 --to 24
       """)
   }
 
@@ -59,12 +60,6 @@ struct RunQuiz: ParsableCommand {
 
   @Option(name: .shortAndLong, help: "Limit the number of questions.")
   var limit: Int?
-
-  @Option(name: .shortAndLong, help: "The start of the multiplication table.")
-  var from: Int = 2
-
-  @Option(name: .shortAndLong, help: "The end of the multiplication table.")
-  var to: Int = 25
 
   enum Ordering: String, ExpressibleByArgument {
     case random, sorted, reversed
@@ -87,8 +82,20 @@ struct RunQuiz: ParsableCommand {
   @Flag(name: .customLong("show"), help: "Show answers and exit.")
   var showAnswersAndExit = false
 
+  @Option(name: .shortAndLong, help: "The start of the multiplication table.")
+  var from: Int = 2
+
+  @Option(name: .shortAndLong, help: "The end of the multiplication table.")
+  var to: Int = 25
+
   private func separator(isDouble: Bool) -> String {
     String(repeating: isDouble ? "=" : "-", count: 50)
+  }
+
+  mutating func validate() throws {
+    guard from <= to else {
+      throw ValidationError("`from` must be smaller or equal to `to`.")
+    }
   }
 
   mutating func run() throws {
